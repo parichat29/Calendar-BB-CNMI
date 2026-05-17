@@ -408,6 +408,69 @@
     display: none;
   }
 
+  .calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 10px;
+}
+
+.day-card {
+  min-height: 110px;
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: #ffffff;
+}
+
+.day-number {
+  font-weight: 900;
+  color: var(--text);
+}
+
+.day-chip {
+  display: block;
+  margin-top: 6px;
+  padding: 4px 7px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.chip-leave {
+  background: #eef0ff;
+  color: #5367d8;
+}
+
+.chip-duty {
+  background: #e8f2ff;
+  color: #3f7fc4;
+}
+
+.chip-meeting {
+  background: #eef9f3;
+  color: #34785a;
+}
+
+.chip-blocked {
+  background: #fff0f0;
+  color: #c45656;
+}
+
+.chip-holiday {
+  background: #fff7df;
+  color: #9a7220;
+}
+
+@media (max-width: 768px) {
+  .calendar-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .day-card {
+    min-height: auto;
+  }
+}
+    
   @media (max-width: 900px) {
     .login-page {
       grid-template-columns: 1fr;
@@ -536,10 +599,13 @@
       </div>
 
       <div class="card-soft">
-        <h5 class="fw-bold">พร้อมต่อ API แล้ว</h5>
-        <p class="text-muted mb-0">
-          ขั้นต่อไปจะเชื่อม Login API, Dashboard Calendar และฟอร์มบันทึกลา
-        </p>
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <button class="btn-soft" onclick="changeMonth(-1)">‹ เดือนก่อน</button>
+          <h5 id="calendarTitle" class="fw-bold mb-0">Dashboard</h5>
+          <button class="btn-soft" onclick="changeMonth(1)">เดือนถัดไป ›</button>
+        </div>
+
+        <div id="calendarGrid" class="calendar-grid"></div>
       </div>
     </main>
   </section>
@@ -587,6 +653,27 @@
 
     let currentUser = null;
 
+function restoreLogin() {
+  const savedUser = localStorage.getItem("leaveUser");
+
+  if (!savedUser) return;
+
+  try {
+    currentUser = JSON.parse(savedUser);
+
+    document.getElementById("loginPage").style.display = "none";
+    document.getElementById("appShell").style.display = "block";
+
+    document.getElementById("userLabel").textContent =
+      currentUser.fullName || currentUser.username;
+
+  } catch (err) {
+    localStorage.removeItem("leaveUser");
+  }
+  
+  loadDashboard();
+}
+
 function showModal(title, text, icon = "✨") {
   document.getElementById("modalTitle").textContent = title;
   document.getElementById("modalText").textContent = text;
@@ -623,6 +710,8 @@ async function login() {
     document.getElementById("loginPage").style.display = "none";
     document.getElementById("appShell").style.display = "block";
     document.getElementById("userLabel").textContent = currentUser.fullName || currentUser.username;
+
+    loadDashboard();
 
     if (currentUser.mustChangePassword) {
       document.getElementById("oldPasswordInput").value = password;
@@ -685,12 +774,79 @@ async function submitChangePassword() {
   input.type = input.type === "password" ? "text" : "password";
 }
 
+restoreLogin();
+    
 function forgotPassword() {
   showModal(
     "ลืมรหัสผ่าน",
     "ขั้นต่อไป ระบบจะส่งรหัสรีเซ็ตไปที่อีเมลที่ลงทะเบียนไว้ในระบบ",
     "📧"
   );
+}
+
+    let currentYear = new Date().getFullYear();
+let currentMonth = new Date().getMonth() + 1;
+
+function changeMonth(step) {
+  currentMonth += step;
+
+  if (currentMonth < 1) {
+    currentMonth = 12;
+    currentYear--;
+  }
+
+  if (currentMonth > 12) {
+    currentMonth = 1;
+    currentYear++;
+  }
+
+  loadDashboard();
+}
+
+async function loadDashboard() {
+  try {
+    const url =
+      `${WEB_APP_URL}?action=getMonthlyDashboard` +
+      `&year=${currentYear}` +
+      `&month=${currentMonth}`;
+
+    const res = await fetch(url);
+    const data = await res.json();
+
+    if (!data.ok) {
+      showModal("โหลด Dashboard ไม่สำเร็จ", data.message, "⚠️");
+      return;
+    }
+
+    renderCalendar(data);
+
+  } catch (err) {
+    showModal("เกิดข้อผิดพลาด", err.message, "⚠️");
+  }
+}
+
+function renderCalendar(data) {
+  const title = document.getElementById("calendarTitle");
+  const grid = document.getElementById("calendarGrid");
+
+  title.textContent = `Dashboard ${String(data.month).padStart(2, "0")}/${data.year}`;
+  grid.innerHTML = "";
+
+  data.days.forEach(day => {
+    const card = document.createElement("div");
+    card.className = "day-card";
+
+    card.innerHTML = `
+      <div class="day-number">${day.day}</div>
+      ${day.holidays.length ? `<span class="day-chip chip-holiday">วันหยุด ${day.holidays.length}</span>` : ""}
+      ${day.blockedDates.length ? `<span class="day-chip chip-blocked">ห้ามเซต</span>` : ""}
+      ${day.requests.filter(r => r.requestType === "LEAVE").length ? `<span class="day-chip chip-leave">ลา ${day.requests.filter(r => r.requestType === "LEAVE").length}</span>` : ""}
+      ${day.requests.filter(r => r.requestType === "NO_DUTY").length ? `<span class="day-chip chip-duty">ไม่รับเวร ${day.requests.filter(r => r.requestType === "NO_DUTY").length}</span>` : ""}
+      ${day.meetings.length ? `<span class="day-chip chip-meeting">ประชุม ${day.meetings.length}</span>` : ""}
+    `;
+
+    grid.appendChild(card);
+  });
 }
     
   </script>
