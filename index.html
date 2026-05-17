@@ -890,7 +890,7 @@
       <button class="nav-btn">📌 ดูรายการของฉัน</button>
       <button class="nav-btn">✅ ยืนยันลาใน HR-iService</button>
       <button class="nav-btn">⚙️ Admin (การตั้งค่า)</button>
-      <button class="nav-btn" onclick="ออกจากระบบ()">🚪 Logout</button>
+      <button class="nav-btn" onclick="logout()">🚪 ออกจากระบบ</button>
     </aside>
 
     <main class="main">
@@ -1469,7 +1469,8 @@ function getLeaveTypeLabelClient(type) {
     </div>
   </div>
 `;
-
+}
+    
   function updateRequestForm() {
   const type = document.getElementById("requestType").value;
 
