@@ -887,43 +887,47 @@
 
       <button class="nav-btn active" onclick="showDashboardPage()">📅 ตารางประจำเดือน</button>
       <button class="nav-btn" onclick="showRequestPage()"> 📝 บันทึกรายการ </button>
-      <button class="nav-btn">📌 ดูรายการของฉัน</button>
+      <button class="nav-btn">📌 รายการของฉัน</button>
       <button class="nav-btn">✅ ยืนยันลาใน HR-iService</button>
       <button class="nav-btn">⚙️ Admin (การตั้งค่า)</button>
       <button class="nav-btn" onclick="logout()">🚪 ออกจากระบบ</button>
     </aside>
 
     <main class="main">
-      <div class="topbar d-flex justify-content-between align-items-center">
-        <div>
-          <button class="btn-soft mobile-toggle me-2" onclick="toggleSidebar()">☰</button>
-          <span class="fw-bold">ตารางประจำเดือน</span>
-        </div>
-        <div id="userLabel" class="text-muted small"></div>
+  <div class="topbar d-flex justify-content-between align-items-center">
+    <div>
+      <button class="btn-soft mobile-toggle me-2" onclick="toggleSidebar()">☰</button>
+      <span class="fw-bold">ตารางประจำเดือน</span>
+    </div>
+    <div id="userLabel" class="text-muted small"></div>
+  </div>
+
+  <div id="dashboardPage">
+    <div class="card-soft">
+      <div class="calendar-toolbar">
+        <button class="calendar-nav-btn" onclick="changeMonth(-1)">‹ เดือนก่อน</button>
+        <h5 id="calendarTitle" class="calendar-title">พฤษภาคม 2026</h5>
+        <button class="calendar-nav-btn" onclick="changeMonth(1)">เดือนถัดไป ›</button>
       </div>
 
-      <div class="card-soft">
-        <div class="calendar-toolbar">
-          <button class="calendar-nav-btn" onclick="changeMonth(-1)">‹ เดือนก่อน</button>
-          <h5 id="calendarTitle" class="calendar-title">พฤษภาคม 2026</h5>
-          <button class="calendar-nav-btn" onclick="changeMonth(1)">เดือนถัดไป ›</button>
+      <div class="calendar-wrap">
+        <div class="calendar-weekdays">
+          <div class="weekday-cell" data-short="อา">อาทิตย์</div>
+          <div class="weekday-cell" data-short="จ">จันทร์</div>
+          <div class="weekday-cell" data-short="อ">อังคาร</div>
+          <div class="weekday-cell" data-short="พ">พุธ</div>
+          <div class="weekday-cell" data-short="พฤ">พฤหัสบดี</div>
+          <div class="weekday-cell" data-short="ศ">ศุกร์</div>
+          <div class="weekday-cell" data-short="ส">เสาร์</div>
         </div>
 
-        <div class="calendar-wrap">
-          <div class="calendar-weekdays">
-            <div class="weekday-cell" data-short="อา">อาทิตย์</div>
-            <div class="weekday-cell" data-short="จ">จันทร์</div>
-            <div class="weekday-cell" data-short="อ">อังคาร</div>
-            <div class="weekday-cell" data-short="พ">พุธ</div>
-            <div class="weekday-cell" data-short="พฤ">พฤหัสบดี</div>
-            <div class="weekday-cell" data-short="ศ">ศุกร์</div>
-            <div class="weekday-cell" data-short="ส">เสาร์</div>
-          </div>
-
-          <div id="calendarGrid" class="calendar-grid"></div>
-        </div>
+        <div id="calendarGrid" class="calendar-grid"></div>
       </div>
-    </main>
+    </div>
+  </div>
+
+  <div id="requestPage" style="display:none;"></div>
+</main>
   </section>
 
   <div id="messageModal" class="modal-backdrop-custom">
