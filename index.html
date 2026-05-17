@@ -408,57 +408,128 @@
     display: none;
   }
 
-  .calendar-grid {
+  .calendar-weekdays,
+.calendar-grid {
   display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  gap: 10px;
+  grid-template-columns: repeat(7, minmax(120px, 1fr));
+}
+
+.calendar-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  background: white;
+}
+
+.calendar-weekdays {
+  min-width: 840px;
+  background: #f4f6ff;
+  border-bottom: 1px solid var(--line);
+}
+
+.weekday-cell {
+  padding: 12px 10px;
+  text-align: center;
+  color: var(--muted);
+  font-weight: 900;
+}
+
+.calendar-grid {
+  min-width: 840px;
 }
 
 .day-card {
-  min-height: 110px;
-  padding: 10px;
-  border: 1px solid var(--line);
-  border-radius: 18px;
+  min-height: 132px;
+  padding: 8px;
+  border-right: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
   background: #ffffff;
 }
 
-.day-number {
-  font-weight: 900;
-  color: var(--text);
+.day-card:nth-child(7n) {
+  border-right: 0;
 }
 
-.day-chip {
+.day-card.muted-day {
+  background: #f8f9fd;
+  color: #b5bbca;
+}
+
+.day-card.today {
+  background: #f7f9ff;
+  box-shadow: inset 0 0 0 2px var(--primary);
+}
+
+.day-number {
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  margin-bottom: 6px;
+  border-radius: 50%;
+  font-weight: 900;
+}
+
+.day-card.today .day-number {
+  background: var(--primary);
+  color: white;
+}
+
+.event-pill {
   display: block;
-  margin-top: 6px;
+  width: 100%;
+  margin-top: 4px;
   padding: 4px 7px;
-  border-radius: 999px;
+  border-radius: 7px;
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1.25;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.event-leave {
+  background: #dfe5ff;
+  color: #4057c8;
+}
+
+.event-duty {
+  background: #dff1ff;
+  color: #256c9c;
+}
+
+.event-meeting {
+  background: #e5f6ec;
+  color: #24724b;
+}
+
+.event-blocked {
+  background: #ffe5e5;
+  color: #b94040;
+}
+
+.event-holiday {
+  background: #fff0c2;
+  color: #8a6818;
+}
+
+.more-pill {
+  margin-top: 4px;
+  color: var(--muted);
   font-size: 12px;
   font-weight: 800;
 }
 
-.chip-leave {
-  background: #eef0ff;
-  color: #5367d8;
-}
+@media (max-width: 768px) {
+  .calendar-weekdays,
+  .calendar-grid {
+    grid-template-columns: repeat(7, 118px);
+  }
 
-.chip-duty {
-  background: #e8f2ff;
-  color: #3f7fc4;
-}
-
-.chip-meeting {
-  background: #eef9f3;
-  color: #34785a;
-}
-
-.chip-blocked {
-  background: #fff0f0;
-  color: #c45656;
-}
-
-.chip-holiday {
-  background: #fff7df;
-  color: #9a7220;
+  .day-card {
+    min-height: 118px;
+  }
 }
 
 @media (max-width: 768px) {
@@ -605,7 +676,19 @@
           <button class="btn-soft" onclick="changeMonth(1)">เดือนถัดไป ›</button>
         </div>
 
-        <div id="calendarGrid" class="calendar-grid"></div>
+        <div class="calendar-wrap">
+          <div class="calendar-weekdays">
+            <div class="weekday-cell">อา</div>
+            <div class="weekday-cell">จ</div>
+            <div class="weekday-cell">อ</div>
+            <div class="weekday-cell">พ</div>
+            <div class="weekday-cell">พฤ</div>
+            <div class="weekday-cell">ศ</div>
+            <div class="weekday-cell">ส</div>
+          </div>
+
+          <div id="calendarGrid" class="calendar-grid"></div>
+        </div>
       </div>
     </main>
   </section>
