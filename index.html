@@ -268,6 +268,105 @@
   margin-top: 26px;
 }
 
+    .login-help {
+  font-size: 14px;
+  color: #7b8098;
+  background: rgba(109, 93, 252, 0.08);
+  border: 1px solid rgba(109, 93, 252, 0.12);
+  border-radius: 14px;
+  padding: 10px 12px;
+  margin: -4px 0 14px;
+  line-height: 1.6;
+}
+
+.modal-backdrop-custom {
+  position: fixed;
+  inset: 0;
+  background: rgba(23, 33, 79, 0.32);
+  backdrop-filter: blur(8px);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 18px;
+  z-index: 999;
+}
+
+.modal-backdrop-custom.show {
+  display: flex;
+}
+
+.pretty-modal {
+  width: 100%;
+  max-width: 430px;
+  background: rgba(255,255,255,.96);
+  border-radius: 28px;
+  padding: 26px;
+  box-shadow: 0 28px 80px rgba(64, 70, 140, 0.25);
+  border: 1px solid rgba(255,255,255,.8);
+  animation: popIn .18s ease-out;
+}
+
+@keyframes popIn {
+  from {
+    transform: translateY(12px) scale(.98);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+}
+
+.modal-icon {
+  width: 62px;
+  height: 62px;
+  border-radius: 22px;
+  display: grid;
+  place-items: center;
+  font-size: 30px;
+  margin-bottom: 14px;
+  background: linear-gradient(135deg, #6d5dfc, #ff5fc8);
+  color: white;
+}
+
+.modal-title {
+  font-weight: 900;
+  font-size: 24px;
+  color: #17214f;
+  margin-bottom: 6px;
+}
+
+.modal-text {
+  color: #737993;
+  line-height: 1.7;
+  margin-bottom: 18px;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.btn-soft {
+  border: 0;
+  background: #eef1ff;
+  color: #4d57a8;
+  border-radius: 14px;
+  padding: 11px 16px;
+  font-weight: 800;
+  flex: 1;
+}
+
+.btn-gradient {
+  border: 0;
+  background: linear-gradient(90deg, #6d5dfc, #ff5fc8);
+  color: white;
+  border-radius: 14px;
+  padding: 11px 16px;
+  font-weight: 900;
+  flex: 1;
+}
+
 @media (max-width: 900px) {
   .login-page {
     grid-template-columns: 1fr;
@@ -429,7 +528,12 @@
       <button class="eye-btn" type="button" onclick="togglePassword()">👁</button>
     </div>
 
-    <a class="forgot-link" onclick="forgotPassword()">ลืมรหัสผ่าน?</a>
+    <div class="login-help">
+  ครั้งแรกให้ใช้รหัสผ่านเดียวกับรหัสเจ้าหน้าที่ก่อน<br>
+  หลังเข้าสู่ระบบ ระบบจะให้เปลี่ยนรหัสผ่านใหม่
+</div>
+
+<a class="forgot-link" onclick="forgotPassword()">ลืมรหัสผ่าน?</a>
 
     <button class="btn-main w-100" onclick="login()">เข้าสู่ระบบ</button>
 
@@ -469,6 +573,40 @@
     </main>
   </section>
 
+  <div id="messageModal" class="modal-backdrop-custom">
+  <div class="pretty-modal">
+    <div id="modalIcon" class="modal-icon">✨</div>
+    <div id="modalTitle" class="modal-title">แจ้งเตือน</div>
+    <div id="modalText" class="modal-text"></div>
+    <div class="modal-actions">
+      <button class="btn-gradient" onclick="closeModal()">ตกลง</button>
+    </div>
+  </div>
+</div>
+
+<div id="changePasswordModal" class="modal-backdrop-custom">
+  <div class="pretty-modal">
+    <div class="modal-icon">🔐</div>
+    <div class="modal-title">เปลี่ยนรหัสผ่านครั้งแรก</div>
+    <div class="modal-text">
+      เพื่อความปลอดภัย กรุณาตั้งรหัสผ่านใหม่อย่างน้อย 8 ตัว มีตัวพิมพ์ใหญ่ ตัวพิมพ์เล็ก และตัวเลข
+    </div>
+
+    <label class="form-label">รหัสผ่านเดิม</label>
+    <input id="oldPasswordInput" type="password" class="form-control mb-3" placeholder="รหัสผ่านเดิม">
+
+    <label class="form-label">รหัสผ่านใหม่</label>
+    <input id="newPasswordInput" type="password" class="form-control mb-3" placeholder="เช่น Test1234">
+
+    <label class="form-label">ยืนยันรหัสผ่านใหม่</label>
+    <input id="confirmPasswordInput" type="password" class="form-control mb-4" placeholder="กรอกรหัสผ่านใหม่อีกครั้ง">
+
+    <div class="modal-actions">
+      <button class="btn-gradient" onclick="submitChangePassword()">เปลี่ยนรหัสผ่าน</button>
+    </div>
+  </div>
+</div>
+
   <script>
     const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyX4SNjaCJTE9mY7ovsmWy3JoTaVB3hoL9h1EH-mlmBks97r83H2a3--MgB2fL0i7HQ/exec";
 
@@ -476,17 +614,95 @@
       document.getElementById("sidebar").classList.toggle("show");
     }
 
-    function login() {
-      const username = document.getElementById("loginUsername").value.trim();
-      const password = document.getElementById("loginPassword").value.trim();
+    let currentUser = null;
 
-      if (!username || !password) {
-        alert("กรุณากรอกรหัสเจ้าหน้าที่และรหัสผ่าน");
-        return;
-      }
+function showModal(title, text, icon = "✨") {
+  document.getElementById("modalTitle").textContent = title;
+  document.getElementById("modalText").textContent = text;
+  document.getElementById("modalIcon").textContent = icon;
+  document.getElementById("messageModal").classList.add("show");
+}
 
-      alert("ขั้นต่อไปจะต่อ API Login จริง");
+function closeModal() {
+  document.getElementById("messageModal").classList.remove("show");
+}
+
+async function login() {
+  const username = document.getElementById("loginUsername").value.trim();
+  const password = document.getElementById("loginPassword").value.trim();
+
+  if (!username || !password) {
+    showModal("กรอกข้อมูลไม่ครบ", "กรุณากรอกรหัสเจ้าหน้าที่และรหัสผ่าน", "📝");
+    return;
+  }
+
+  try {
+    const url = `${WEB_APP_URL}?action=login&username=${encodeURIComponent(username)}&password=${encodeURIComponent(password)}`;
+    const res = await fetch(url);
+    const data = await res.json();
+
+    if (!data.ok) {
+      showModal("เข้าสู่ระบบไม่สำเร็จ", data.message || "กรุณาตรวจสอบรหัสอีกครั้ง", "⚠️");
+      return;
     }
+
+    currentUser = data.user;
+    localStorage.setItem("leaveUser", JSON.stringify(currentUser));
+
+    document.getElementById("loginPage").style.display = "none";
+    document.getElementById("appShell").style.display = "block";
+    document.getElementById("userLabel").textContent = currentUser.fullName || currentUser.username;
+
+    if (currentUser.mustChangePassword) {
+      document.getElementById("oldPasswordInput").value = password;
+      document.getElementById("changePasswordModal").classList.add("show");
+    }
+
+  } catch (err) {
+    showModal("เกิดข้อผิดพลาด", err.message, "⚠️");
+  }
+}
+
+async function submitChangePassword() {
+  const oldPassword = document.getElementById("oldPasswordInput").value.trim();
+  const newPassword = document.getElementById("newPasswordInput").value.trim();
+  const confirmPassword = document.getElementById("confirmPasswordInput").value.trim();
+
+  if (!newPassword || !confirmPassword) {
+    showModal("กรอกข้อมูลไม่ครบ", "กรุณากรอกรหัสผ่านใหม่และยืนยันรหัสผ่าน", "📝");
+    return;
+  }
+
+  if (newPassword !== confirmPassword) {
+    showModal("รหัสผ่านไม่ตรงกัน", "กรุณากรอกรหัสผ่านใหม่ให้ตรงกันทั้ง 2 ช่อง", "⚠️");
+    return;
+  }
+
+  try {
+    const url =
+      `${WEB_APP_URL}?action=changePassword` +
+      `&username=${encodeURIComponent(currentUser.username)}` +
+      `&oldPassword=${encodeURIComponent(oldPassword)}` +
+      `&newPassword=${encodeURIComponent(newPassword)}`;
+
+    const res = await fetch(url);
+    const data = await res.json();
+
+    if (!data.ok) {
+      showModal("เปลี่ยนรหัสผ่านไม่สำเร็จ", data.message || "กรุณาตรวจสอบอีกครั้ง", "⚠️");
+      return;
+    }
+
+    currentUser.mustChangePassword = false;
+    localStorage.setItem("leaveUser", JSON.stringify(currentUser));
+
+    document.getElementById("changePasswordModal").classList.remove("show");
+    showModal("สำเร็จ", "เปลี่ยนรหัสผ่านเรียบร้อยแล้ว", "✅");
+
+  } catch (err) {
+    showModal("เกิดข้อผิดพลาด", err.message, "⚠️");
+  }
+}
 
     function logout() {
       localStorage.removeItem("leaveUser");
@@ -499,7 +715,11 @@
 }
 
 function forgotPassword() {
-  alert("ขั้นต่อไปจะทำระบบส่งรหัสรีเซ็ตไปที่อีเมลในระบบ");
+  showModal(
+    "ลืมรหัสผ่าน",
+    "ขั้นต่อไป ระบบจะส่งรหัสรีเซ็ตไปที่อีเมลที่ลงทะเบียนไว้ในระบบ",
+    "📧"
+  );
 }
     
   </script>
