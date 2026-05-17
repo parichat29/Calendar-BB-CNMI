@@ -885,7 +885,7 @@
     <aside id="sidebar" class="sidebar">
       <div class="brand">CNMI Staff BB Calendar</div>
 
-      <button class="nav-btn active">📅 Dashboard</button>
+      <button class="nav-btn active" onclick="showDashboardPage()">📅 ตารางประจำเดือน</button>
       <button class="nav-btn" onclick="showRequestPage()"> 📝 บันทึกรายการ </button>
       <button class="nav-btn">📌 ดูรายการของฉัน</button>
       <button class="nav-btn">✅ ยืนยันลาใน HR-iService</button>
@@ -1404,63 +1404,174 @@ function getLeaveTypeLabelClient(type) {
   page.style.display = "block";
 
   page.innerHTML = `
-    <div class="card-soft">
-      <div class="request-header">
-        📝 บันทึกรายการ
+  <div class="card-soft">
+    <div class="request-header">📝 บันทึกรายการ</div>
+
+    <div class="request-grid">
+      <div class="form-group">
+        <label>ประเภท</label>
+        <select class="form-select" id="requestType" onchange="updateRequestForm()">
+          <option value="">เลือกประเภท</option>
+          <option value="LEAVE_SICK">ลาป่วย</option>
+          <option value="LEAVE_VACATION">ลาพักผ่อน</option>
+          <option value="LEAVE_PERSONAL">ลากิจ</option>
+          <option value="LEAVE_MATERNITY">ลาคลอด</option>
+          <option value="NO_DUTY">ไม่รับเวร</option>
+          <option value="MEETING">ประชุม</option>
+          <option value="OTHER">อื่น ๆ</option>
+        </select>
       </div>
 
-      <div class="request-grid">
+      <div class="form-group" id="timeSlotBox">
+        <label>ช่วงเวลา</label>
+        <select class="form-select" id="timeSlot">
+          <option value="FULL_DAY">เต็มวัน 08:00-16:00</option>
+          <option value="AM">ครึ่งเช้า 08:00-12:30</option>
+          <option value="PM">ครึ่งบ่าย 11:30-16:00</option>
+        </select>
+      </div>
 
-        <div class="form-group">
-          <label>ประเภท</label>
-          <select class="form-select" id="requestType">
-            <option value="">เลือกประเภท</option>
-            <option>ลาป่วย</option>
-            <option>ลาพักผ่อน</option>
-            <option>ลากิจ</option>
-            <option>ลาคลอด</option>
-            <option>ประชุม</option>
-            <option>ห้ามเซต</option>
-            <option>ไม่รับเวร</option>
-          </select>
-        </div>
+      <div class="form-group">
+        <label>วันที่เริ่ม</label>
+        <input id="startDate" type="date" class="form-control">
+      </div>
 
-        <div class="form-group">
-          <label>วันที่เริ่ม</label>
-          <input type="date" class="form-control">
-        </div>
+      <div class="form-group">
+        <label>วันที่สิ้นสุด</label>
+        <input id="endDate" type="date" class="form-control">
+      </div>
 
-        <div class="form-group">
-          <label>วันที่สิ้นสุด</label>
-          <input type="date" class="form-control">
-        </div>
+      <div class="form-group" id="startTimeBox" style="display:none;">
+        <label>เวลาเริ่ม</label>
+        <input id="startTime" type="time" class="form-control">
+      </div>
 
-        <div class="form-group">
-          <label>เวลาเริ่ม</label>
-          <input type="time" class="form-control">
-        </div>
+      <div class="form-group" id="endTimeBox" style="display:none;">
+        <label>เวลาสิ้นสุด</label>
+        <input id="endTime" type="time" class="form-control">
+      </div>
 
-        <div class="form-group">
-          <label>เวลาสิ้นสุด</label>
-          <input type="time" class="form-control">
-        </div>
+      <div class="form-group" id="locationBox" style="display:none;">
+        <label>สถานที่</label>
+        <input id="locationInput" class="form-control" placeholder="เช่น ห้องประชุม">
+      </div>
 
-        <div class="form-group full-width">
-          <label>รายละเอียด</label>
-          <textarea class="form-control"
-            rows="4"
-            placeholder="รายละเอียดเพิ่มเติม"></textarea>
-        </div>
+      <div class="form-group full-width">
+        <label>เหตุผล / รายละเอียด</label>
+        <textarea id="reasonInput" class="form-control" rows="4" placeholder="รายละเอียดเพิ่มเติม"></textarea>
+      </div>
 
-        <div class="full-width">
-          <button class="btn-submit-request">
-            บันทึกรายการ
-          </button>
-        </div>
-
+      <div class="full-width">
+        <button class="btn-submit-request" onclick="submitRequestFromForm()">
+          บันทึกรายการ
+        </button>
       </div>
     </div>
-  `;
+  </div>
+`;
+
+  function updateRequestForm() {
+  const type = document.getElementById("requestType").value;
+
+  const isActivity = type === "MEETING" || type === "OTHER";
+
+  document.getElementById("timeSlotBox").style.display =
+    isActivity ? "none" : "block";
+
+  document.getElementById("startTimeBox").style.display =
+    isActivity ? "block" : "none";
+
+  document.getElementById("endTimeBox").style.display =
+    isActivity ? "block" : "none";
+
+  document.getElementById("locationBox").style.display =
+    isActivity ? "block" : "none";
+}
+
+async function submitRequestFromForm() {
+  if (!currentUser) {
+    showModal("ยังไม่ได้เข้าสู่ระบบ", "กรุณาเข้าสู่ระบบก่อนบันทึกรายการ", "⚠️");
+    return;
+  }
+
+  const selected = document.getElementById("requestType").value;
+  const startDate = document.getElementById("startDate").value;
+  const endDate = document.getElementById("endDate").value || startDate;
+  const timeSlot = document.getElementById("timeSlot").value;
+  const reason = document.getElementById("reasonInput").value.trim();
+  const startTime = document.getElementById("startTime").value;
+  const endTime = document.getElementById("endTime").value;
+  const location = document.getElementById("locationInput").value.trim();
+
+  if (!selected || !startDate) {
+    showModal("กรอกข้อมูลไม่ครบ", "กรุณาเลือกประเภทและวันที่เริ่ม", "📝");
+    return;
+  }
+
+  let requestType = "";
+  let leaveType = "";
+
+  if (selected.startsWith("LEAVE_")) {
+    requestType = "LEAVE";
+    leaveType = selected.replace("LEAVE_", "");
+  } else {
+    requestType = selected;
+  }
+
+  let url =
+    `${WEB_APP_URL}?action=submitRequest` +
+    `&userId=${encodeURIComponent(currentUser.userId)}` +
+    `&requestType=${encodeURIComponent(requestType)}` +
+    `&startDate=${encodeURIComponent(startDate)}` +
+    `&endDate=${encodeURIComponent(endDate)}` +
+    `&reason=${encodeURIComponent(reason)}`;
+
+  if (leaveType) {
+    url += `&leaveType=${encodeURIComponent(leaveType)}`;
+    url += `&timeSlot=${encodeURIComponent(timeSlot)}`;
+  }
+
+  if (requestType === "NO_DUTY") {
+    url += `&timeSlot=FULL_DAY`;
+  }
+
+  if (requestType === "MEETING" || requestType === "OTHER") {
+    url += `&startTime=${encodeURIComponent(startTime)}`;
+    url += `&endTime=${encodeURIComponent(endTime)}`;
+    url += `&location=${encodeURIComponent(location)}`;
+    url += `&detail=${encodeURIComponent(reason)}`;
+  }
+
+  try {
+    const res = await fetch(url);
+    const data = await res.json();
+
+    if (!data.ok) {
+      showModal("บันทึกไม่สำเร็จ", data.message || "กรุณาตรวจสอบข้อมูล", "⚠️");
+      return;
+    }
+
+    const warningText = data.warnings && data.warnings.length
+      ? "\n\nคำเตือน:\n" + data.warnings.join("\n")
+      : "";
+
+    showModal(
+      "บันทึกสำเร็จ",
+      `บันทึกรายการเรียบร้อยแล้ว${warningText}`,
+      "✅"
+    );
+
+    loadDashboard();
+    showDashboardPage();
+
+  } catch (err) {
+    showModal("เกิดข้อผิดพลาด", err.message, "⚠️");
+  }
+}
+
+function showDashboardPage() {
+  document.getElementById("requestPage").style.display = "none";
+  document.getElementById("dashboardPage").style.display = "block";
 }
     
   </script>
