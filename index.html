@@ -1038,12 +1038,11 @@
   <section id="appShell" class="app-shell">
     <aside id="sidebar" class="sidebar">
       <div class="brand">CNMI Staff BB Calendar</div>
-
-      <button class="nav-btn active" onclick="showDashboardPage()">📅 ตารางประจำเดือน</button>
-      <button class="nav-btn" onclick="showRequestPage()"> 📝 บันทึกรายการ </button>
-      <button class="nav-btn" onclick="showMyRequestsPage()">📌 รายการของฉัน</button>
-      <button id="hrConfirmMenu" class="nav-btn" onclick="showHrConfirmPage()"> ✅ ยืนยันลาใน HR-iService </button>
-      <button class="nav-btn">⚙️ Admin (การตั้งค่า)</button>
+      <button class="nav-btn active" data-roles="admin,mt,md,clerk" onclick="showDashboardPage()"> 📅 ตารางประจำเดือน </button>
+      <button class="nav-btn" data-roles="admin,mt,md,clerk" onclick="showRequestPage()"> 📝 บันทึกรายการ </button>
+      <button class="nav-btn" data-roles="admin,mt,md,clerk" onclick="showMyRequestsPage()"> 📌 รายการของฉัน </button>
+      <button class="nav-btn" data-roles="admin,head" onclick="showHrConfirmPage()"> ✅ ยืนยันลาใน HR-iService </button>
+      <button class="nav-btn" data-roles="admin" onclick="showAdminPage()"> ⚙️ Admin (การตั้งค่า) </button>
       <button class="nav-btn" onclick="logout()">🚪 ออกจากระบบ</button>
     </aside>
 
@@ -2006,6 +2005,18 @@ function applyMenuPermission() {
   if (!hrMenu) return;
 
   hrMenu.style.display = canConfirmHr() ? "block" : "none";
+}
+
+function applyMenuPermission() {
+  const role = String(currentUser?.role || "").toLowerCase();
+
+  document.querySelectorAll(".nav-btn[data-roles]").forEach(btn => {
+    const roles = btn.dataset.roles
+      .split(",")
+      .map(r => r.trim().toLowerCase());
+
+    btn.style.display = roles.includes(role) ? "block" : "none";
+  });
 }
     
   </script>
