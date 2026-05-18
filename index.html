@@ -833,6 +833,71 @@
     font-size: 24px;
   }
 }
+
+.hr-list {
+  display: grid;
+  gap: 12px;
+}
+
+.hr-card {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  align-items: center;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: #f8faff;
+}
+
+.hr-title {
+  font-size: 17px;
+  font-weight: 900;
+  color: var(--text);
+}
+
+.hr-sub {
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.hr-reason {
+  margin-top: 6px;
+  color: var(--text);
+  font-size: 14px;
+}
+
+.hr-confirm-btn {
+  border: 0;
+  border-radius: 14px;
+  background: linear-gradient(90deg, var(--primary), var(--accent));
+  color: white;
+  padding: 10px 14px;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.empty-state {
+  padding: 22px;
+  border-radius: 18px;
+  background: #f8faff;
+  color: var(--muted);
+  text-align: center;
+  font-weight: 800;
+}
+
+@media (max-width: 768px) {
+  .hr-card {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .hr-confirm-btn {
+    width: 100%;
+  }
+}
     
 </style>
   
@@ -888,7 +953,7 @@
       <button class="nav-btn active" onclick="showDashboardPage()">📅 ตารางประจำเดือน</button>
       <button class="nav-btn" onclick="showRequestPage()"> 📝 บันทึกรายการ </button>
       <button class="nav-btn">📌 รายการของฉัน</button>
-      <button class="nav-btn">✅ ยืนยันลาใน HR-iService</button>
+      <button class="nav-btn" onclick="showHrConfirmPage()"> ✅ ยืนยันลาใน HR-iService </button>
       <button class="nav-btn">⚙️ Admin (การตั้งค่า)</button>
       <button class="nav-btn" onclick="logout()">🚪 ออกจากระบบ</button>
     </aside>
@@ -926,7 +991,7 @@
     </div>
   </div>
 
-  <div id="requestPage" style="display:none;"></div>
+  <div id="hrConfirmPage" style="display:none;"></div>
 </main>
   </section>
 
@@ -1582,6 +1647,87 @@ function showDashboardPage() {
 
 function getDisplayName(person) {
   return person.nickname || person.fullName || "-";
+}
+
+async function showHrConfirmPage() {
+  document.getElementById("dashboardPage").style.display = "none";
+  document.getElementById("requestPage").style.display = "none";
+
+  const page = document.getElementById("hrConfirmPage");
+  page.style.display = "block";
+
+  page.innerHTML = `
+    <div class="card-soft">
+      <div class="request-header">✅ ยืนยันลาใน HR-iService</div>
+      <div id="hrConfirmList" class="hr-list">
+        กำลังโหลด...
+      </div>
+    </div>
+  `;
+
+  const url =
+    `${WEB_APP_URL}?action=getPendingHrConfirm`;
+
+  const res = await fetch(url);
+  const data = await res.json();
+
+  if (!data.ok) {
+    showModal("โหลดข้อมูลไม่สำเร็จ", data.message || "กรุณาลองใหม่", "⚠️");
+    return;
+  }
+
+  renderHrConfirmList(data.requests || []);
+}
+
+function renderHrConfirmList(requests) {
+  const box = document.getElementById("hrConfirmList");
+
+  if (!requests.length) {
+    box.innerHTML = `
+      <div class="empty-state">
+        ไม่มีรายการรอยืนยัน HR
+      </div>
+    `;
+    return;
+  }
+
+  box.innerHTML = requests.map(r => `
+    <div class="hr-card">
+      <div>
+        <div class="hr-title">
+          ${r.nickname || r.fullName} • ${r.leaveTypeLabel}
+        </div>
+        <div class="hr-sub">
+          ${r.startDate} ถึง ${r.endDate} • ${r.dayCount} วัน
+        </div>
+        <div class="hr-reason">
+          ${r.reason || "-"}
+        </div>
+      </div>
+
+      <button class="hr-confirm-btn" onclick="confirmHr('${r.requestId}')">
+        Confirmed ✅
+      </button>
+    </div>
+  `).join("");
+}
+
+async function confirmHr(requestId) {
+  const url =
+    `${WEB_APP_URL}?action=confirmHrRequest` +
+    `&requestId=${encodeURIComponent(requestId)}` +
+    `&confirmedBy=${encodeURIComponent(currentUser.userId)}`;
+
+  const res = await fetch(url);
+  const data = await res.json();
+
+  if (!data.ok) {
+    showModal("ยืนยันไม่สำเร็จ", data.message || "กรุณาลองใหม่", "⚠️");
+    return;
+  }
+
+  showModal("สำเร็จ", "ยืนยันลาใน HR-iService แล้ว", "✅");
+  showHrConfirmPage();
 }
     
   </script>
