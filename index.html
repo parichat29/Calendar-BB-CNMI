@@ -991,7 +991,8 @@
     </div>
   </div>
 
-  <div id="hrConfirmPage" style="display:none;"></div>
+  <div id="requestPage" style="display:none;"></div>
+<div id="hrConfirmPage" style="display:none;"></div>
 </main>
   </section>
 
@@ -1642,6 +1643,7 @@ async function submitRequestFromForm() {
 
 function showDashboardPage() {
   document.getElementById("requestPage").style.display = "none";
+  document.getElementById("hrConfirmPage").style.display = "none";
   document.getElementById("dashboardPage").style.display = "block";
 }
 
