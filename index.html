@@ -1042,7 +1042,7 @@
       <button class="nav-btn active" onclick="showDashboardPage()">📅 ตารางประจำเดือน</button>
       <button class="nav-btn" onclick="showRequestPage()"> 📝 บันทึกรายการ </button>
       <button class="nav-btn" onclick="showMyRequestsPage()">📌 รายการของฉัน</button>
-      <button class="nav-btn" onclick="showHrConfirmPage()"> ✅ ยืนยันลาใน HR-iService </button>
+      <button id="hrConfirmMenu" class="nav-btn" onclick="showHrConfirmPage()"> ✅ ยืนยันลาใน HR-iService </button>
       <button class="nav-btn">⚙️ Admin (การตั้งค่า)</button>
       <button class="nav-btn" onclick="logout()">🚪 ออกจากระบบ</button>
     </aside>
@@ -1142,6 +1142,7 @@ function restoreLogin() {
 
     document.getElementById("userLabel").textContent =
       currentUser.fullName || currentUser.username;
+    applyMenuPermission();
 
   } catch (err) {
     localStorage.removeItem("leaveUser");
@@ -1186,6 +1187,7 @@ async function login() {
     document.getElementById("loginPage").style.display = "none";
     document.getElementById("appShell").style.display = "block";
     document.getElementById("userLabel").textContent = currentUser.fullName || currentUser.username;
+    applyMenuPermission();
 
     loadDashboard();
 
@@ -1381,7 +1383,10 @@ function buildDayEvents(day) {
         type: "LEAVE",
         label: `${getLeaveTypeLabelClient(r.leaveType)}: ${getDisplayName(r)}`,
         className: getLeaveEventClass(r.leaveType),
-        detail: `${r.startTime}-${r.endTime} | ${r.reason || "-"}`
+        detail:
+          `${r.startTime}-${r.endTime}<br>` +
+          `${r.reason || "-"}<br>` +
+          `${r.hrConfirmed ? "✅ ยืนยันลาใน HR-iService เรียบร้อยแล้ว" : "⏳ รอยืนยันลาใน HR-iService"}`
       });
     }
 
@@ -1989,6 +1994,18 @@ async function cancelMyRequest(requestId) {
 
   loadDashboard();
   showMyRequestsPage();
+}
+
+function canConfirmHr() {
+  const role = String(currentUser?.role || "").toLowerCase();
+  return role === "admin" || role === "incharge" || role === "head";
+}
+
+function applyMenuPermission() {
+  const hrMenu = document.getElementById("hrConfirmMenu");
+  if (!hrMenu) return;
+
+  hrMenu.style.display = canConfirmHr() ? "block" : "none";
 }
     
   </script>
